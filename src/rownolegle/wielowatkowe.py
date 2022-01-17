@@ -8,7 +8,7 @@ from queue import Queue
 from time import sleep
 from random import randint
 from time import time
-from src.przeszukiwanie_strony import znajdz_stolice
+from src.web.przeszukiwanie_strony import znajdz_stolice
 
 # ------------------------------------------------------------------
 # Thread
