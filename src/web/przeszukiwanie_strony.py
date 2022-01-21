@@ -7,9 +7,13 @@ Created on Jan 13, 2022
 from requests import get
 from time import time
 
-TAGET_URL = "https://en.wikipedia.org"
-
 def znajdz_stolice(lista_panstw = []):
+    '''
+    Wyszukuje nazwy stolic dla podanej listy państw
+    kożystając ze strony angielskiej wikipedii.
+    '''
+    
+    TAGET_URL = "https://en.wikipedia.org"
     stolice=dict()
     
     for p in lista_panstw:

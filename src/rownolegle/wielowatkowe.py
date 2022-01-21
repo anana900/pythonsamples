@@ -1,7 +1,9 @@
 from threading import (
     Thread, 
     Lock, 
-    Semaphore
+    Semaphore,
+    current_thread,
+    enumerate
 )
 
 from queue import Queue
@@ -9,6 +11,7 @@ from time import sleep
 from random import randint
 from time import time
 from src.web.przeszukiwanie_strony import znajdz_stolice
+from src.dekoratory.dekoratory import dekorator_pomiar_czasu
 
 # ------------------------------------------------------------------
 # Thread
@@ -19,6 +22,7 @@ def f_print_stdo(kto, ile_liczb):
         sleep(1.0/randint(10000, 1000000))
         print("{0}:{1}".format(kto, element))
 
+@dekorator_pomiar_czasu
 def watek_wywolanie_bez_czekania_na_watek_glowny(iteracje=10):
     watek_1 = Thread(target=f_print_stdo,args=("w1a",iteracje,))
     watek_2 = Thread(target=f_print_stdo,args=("w2a",iteracje,))
@@ -32,6 +36,7 @@ def watek_wywolanie_bez_czekania_na_watek_glowny(iteracje=10):
 # Thread
 # Join
 # ------------------------------------------------------------------
+@dekorator_pomiar_czasu
 def watek_wywolanie_z_czekaniem_na_watek_glowny(iteracje=10):
     watek_1 = Thread(target=f_print_stdo,args=("w1b",iteracje,))
     watek_2 = Thread(target=f_print_stdo,args=("w2b",iteracje,))
@@ -52,6 +57,7 @@ def f_print_stdo_lock(kto, ile_liczb, blokowanie):
             sleep(1.0/randint(10000, 1000000))
             print("{0}:{1}".format(kto, element))
 
+@dekorator_pomiar_czasu
 def watek_wywolanie_z_blokada(iteracje=10):
     blokada = Lock()
     watki = [Thread(target=f_print_stdo_lock, args=("w{}b".format(w), iteracje, blokada)) for w in range(2)]
@@ -79,17 +85,16 @@ def szukaj_stolic2(blokada, panstwo):
     print(stolica)
     blokada.release()
 
+@dekorator_pomiar_czasu
 def watek_blokada_wydajnosc_przeszukiwanie_strony(panstwa):
     '''
     Użycie blokady dla wyjścia STDIO sprawia że wyniki wyświetlane są prawidłowo,
     mimo że wiele wątków jednocześnie wyszukuje stolic dla kolejnych państw.
     '''
     blokada = Lock()
-    czas_rozpoczecia = time()
     watki = [Thread(target=szukaj_stolic2, args=(blokada, p)) for p in panstwa]
     [w.start() for w in watki]
     [w.join() for w in watki]
-    print("Czas wykonania {}".format(time() - czas_rozpoczecia))
 
 # ------------------------------------------------------------------
 # Thread
@@ -101,6 +106,7 @@ def szukaj_stolic3(blokada, semafor, panstwo):
     with blokada:
         print(stolica)
 
+@dekorator_pomiar_czasu
 def watek_semafor_blokada_przeszukiwanie_strony(panstwa):
     '''
     Semafor ogranicza nam maksymalną ilość wątków do 4 które mogą wywoływać
@@ -109,11 +115,9 @@ def watek_semafor_blokada_przeszukiwanie_strony(panstwa):
     '''
     blokada = Lock()
     semafor = Semaphore(4)
-    czas_rozpoczecia = time()
     watki = [Thread(target=szukaj_stolic3, args=(blokada, semafor, p)) for p in panstwa]
     [w.start() for w in watki]
     [w.join() for w in watki]
-    print("Czas wykonania {}".format(time() - czas_rozpoczecia))
 
 # ------------------------------------------------------------------
 # Thread
@@ -179,17 +183,20 @@ class SzukajStolicSemaphore(object):
     
     def cls_znajdz_stolice(self, panstwo):
         szukaj_stolic3(self.blokada, self.semafor, panstwo)
-        
+
+@dekorator_pomiar_czasu
 def watek_klasa_blokada_przeszukiwanie_strony(panstwa):
     #szukaj_stolic_1 = SzukajStolic()
     szukaj_stolic_1 = SzukajStolicSemaphore(2)
     
-    czas_rozpoczecia = time()
     watki = [Thread(target=szukaj_stolic_1.cls_znajdz_stolice, args=(p,)) for p in panstwa]
     [w.start() for w in watki]
     [w.join() for w in watki]
-    print("Czas wykonania {}".format(time() - czas_rozpoczecia))
 
+# ------------------------------------------------------------------
+# Thread
+# Queue, Lock w Klasie
+# ------------------------------------------------------------------
 class SzukajStolicKolejka(object):
     def __init__(self, kolejka):
         self.blokada_stdo = Lock()
@@ -203,7 +210,7 @@ def watek_klasa_kolejka_blokada_przeszukiwanie_strony(panstwa):
     q = Queue()
     szukaj_stolic_1 = SzukajStolicKolejka(q)
     [q.put(p) for p in panstwa]
-    no_watki_robocze = 6
+    no_watki_robocze = 8
     
     czas_rozpoczecia = time()
     watki = [Thread(target=szukaj_stolic_1.cls_znajdz_stolice) for _ in range(no_watki_robocze)]
@@ -211,50 +218,54 @@ def watek_klasa_kolejka_blokada_przeszukiwanie_strony(panstwa):
     [w.join() for w in watki]
     print("Czas wykonania {}".format(time() - czas_rozpoczecia))
 
+# ------------------------------------------------------------------
+# Thread
+# Lock w Klasie dziedziczącej po Thread
+# Nie można nadpisywać żadnych innych metod orócz __init__ oraz run.
+# ------------------------------------------------------------------
+class KlasaThreadLock(Thread):
+    def __init__(self, panstwo):
+        super().__init__()
+        self.panstwo = panstwo
+        self.blokada = Lock()
+    
+    def run(self):
+        szukaj_stolic(self.blokada, self.panstwo)
+        print(f"Wykonał wątek: {current_thread().ident}")
+
+@dekorator_pomiar_czasu
+def watek_klasa_thread_blokada_przeszukiwanie_strony(panstwa):
+    lista_watkow = []
+    
+    for panstwo in panstwa:
+        lista_watkow.append(KlasaThreadLock(panstwo))
+        
+    [w.start() for w in lista_watkow]
+    print(f'Lista aktywnych wątków: {enumerate()}')
+    [w.join() for w in lista_watkow]
+      
 
 if __name__ == '__main__':
     #watek_wywolanie_bez_czekania_na_watek_glowny(5)
     #watek_wywolanie_z_czekaniem_na_watek_glowny(4)
     #watek_wywolanie_z_blokada(10)
     
-    panstwa = ['Poland', 'Germany', 'Sweden', 'Ukraine', 'Belorus', 'Russia', 'Austria', 'France']
-    #watek_blokada_wydajnosc_przeszukiwanie_strony(panstwa)
-    #watek_semafor_blokada_przeszukiwanie_strony(panstwa)
-    #watek_kolejka_blokada_przeszukiwanie_strony(panstwa)
-    #watek_klasa_blokada_przeszukiwanie_strony(panstwa)
-    #watek_klasa_kolejka_blokada_przeszukiwanie_strony(panstwa)
-
-
-'''
-    class iiter():
-        def __init__(self, n):
-            self.n = n
-            self.i = 0
-            
-        def __iter__(self):
-            return self
-        
-        def __next__(self):
-            if self.n == self.i:
-                raise StopIteration
-            self.i += 1
-            return self.i
-    
-    class sumiter(iiter):
-        def __init__(self, n):
-            super().__init__(n)
-            self.current = 0
-            
-        def __iter__(self):
-            return iiter.__iter__(self)
-
-        def __next__(self):
-            if self.n == self.i:
-                raise StopIteration
-            self.i += 1
-            self.current += self.i
-            return self.current            
-    
-    print([e for e in iiter(4)])
-    print([e for e in sumiter(4)])
-'''
+    panstwa_europa_full = (
+        "Russia", "Germany", "United Kingdom", "France",
+        "Italy", "Spain", "Ukraine", "Poland",
+        "Romania", "Netherlands", "Belgium", "Czech Republic (Czechia)",
+        "Greece", "Portugal", "Sweden", "Hungary",
+        "Belarus", "Austria", "Serbia", "Switzerland",
+        "Bulgaria", "Denmark", "Finland", "Slovakia",
+        "Norway", "Ireland", "Croatia", "Moldova",
+        "Bosnia and Herzegovina", "Albania", "Lithuania", "North Macedonia",
+        "Slovenia", "Latvia", "Estonia", "Montenegro",
+        "Luxembourg", "Malta", "Iceland", "Andorra",
+        "Monaco", "Liechtenstein", "San Marino", "Holy See"
+        )
+    #watek_blokada_wydajnosc_przeszukiwanie_strony(panstwa_europa_full[:8])
+    #watek_semafor_blokada_przeszukiwanie_strony(panstwa[:8])
+    #watek_kolejka_blokada_przeszukiwanie_strony(panstwa[:8])
+    #watek_klasa_blokada_przeszukiwanie_strony(panstwa[:8])
+    #watek_klasa_kolejka_blokada_przeszukiwanie_strony(panstwa[:8])
+    watek_klasa_thread_blokada_przeszukiwanie_strony(panstwa_europa_full[:8])
