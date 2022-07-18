@@ -4,7 +4,7 @@ Created on Jul 30, 2020
 @author: anana
 '''
 import multiprocessing as mp
-from click._compat import raw_input
+#from click._compat import raw_input
 import time
 
 def oczko(name):
@@ -27,14 +27,14 @@ def pula():
     p.map(oczko, l)
 
 def proces_anonimowy():
-    imie = raw_input("Jak masz na imie?")
+    imie = str("Jak masz na imie?")
     ile_procesow = int(input("Ile procesow uruchomic"))
 
     for _ in range(ile_procesow):
         (mp.Process(target=oczko, args=(imie,))).start()
 
 def proces_anonimowy_z_nawa():
-    imie = raw_input("Jak masz na imie?")
+    imie = str("Jak masz na imie?")
     ile_procesow = int(input("Ile procesow uruchomic"))
 
     for name in range(ile_procesow):
