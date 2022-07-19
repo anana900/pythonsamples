@@ -47,7 +47,7 @@ def wykres_bar():
             plt.text(gain_no + label_offset + (wd * i), 1, label, ha='center', fontsize=6)
         label_offset += 1
 
-    plt.legend(loc='upper center', fontsize=15)
+    #plt.legend(loc='upper center', fontsize=15)
     plt.show()
 
 if __name__=='__main__':
