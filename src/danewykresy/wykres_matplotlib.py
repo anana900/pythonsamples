@@ -1,7 +1,22 @@
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+"""
+Artist - artysta - tym terminem określa się każdy widoczny element na wykresie: Axis, Axes, Figure, Label etc.
+Axis - obiekty osi, można w nich definiować skalę, limity, etykiety.
+Axes - obiekt wykresu definiujący obszar na którym jest rysowany. 1, 2, 3 wymiarowe wykresy. Zawierają główne metody potrzebne do rysowania wykresów.
+Figure - głowny obiekt, kontener w którym zawarte są wszystkie inne Artist wymienione wyżej.
+"""
+
+def wykres_podstawy():
+    # Rysowanie danych
+    y = [1, 2, 3, 1, 2, 0]
+    x = ['a','b','c','d','e','f']
+    fig, ax = plt.subplots()
+    ax.plot(x, y)
+    plt.show()
 
 def wykres_bar():
     """
@@ -51,4 +66,5 @@ def wykres_bar():
     plt.show()
 
 if __name__=='__main__':
-    wykres_bar()
+    wykres_podstawy()
+    #wykres_bar()
