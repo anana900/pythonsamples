@@ -1,3 +1,19 @@
+"""
+Wątek w Python jest instancją klasy threading.Thread. Po wystartowaniu wątku interpreter Python komunikuje się z
+systemem w celu stworzenia natywnego wątka. Thread następnie udostepnia referencje do tego natywego wątku.
+
+Cykl życia wątku:
+1. nowy wątek - powstaje poprzez stworzenie instancji klasy Thread.
+2. działający wątek - powstaje po wywołaniu metody start(). Działający wątek może być w stanie zablokowanym, a
+następnie powrócić do stanu działający.
+3. zakończony wątek - ten stan następuje po wykonaniu funkcji w watku lub poprzez zwrócenie błędu lub wyjątku.
+Zakończonego wątku nie można zrestartować.
+
+Wystartowanie wątku funkcją start() wykonuje go natychmiastowo. Główny wątek niejawnie czeka na zakończenie pobocznego.
+Wywołanie dodatkowej funkcji join() sprawia że wywołanie wątku będzie w najbliższym dostępnym czasie procesora.
+Główny wątek jawnie czekka na zakończenie wykonywania wątku pobocznego.
+
+"""
 from threading import (
     Thread, 
     Lock, 
@@ -17,19 +33,17 @@ from src.dekoratory.dekoratory import dekorator_pomiar_czasu
 # Thread
 # Bez Join
 # ------------------------------------------------------------------
-def f_print_stdo(kto, ile_liczb):
+def f_print_stdo(nazwa_watku, ile_liczb):
     for element in range(ile_liczb):
         sleep(1.0/randint(10000, 1000000))
-        print("{0}:{1}".format(kto, element))
+        print("{0}:{1}".format(nazwa_watku, element))
 
 @dekorator_pomiar_czasu
 def watek_wywolanie_bez_czekania_na_watek_glowny(iteracje=10):
-    watek_1 = Thread(target=f_print_stdo,args=("w1a",iteracje,))
-    watek_2 = Thread(target=f_print_stdo,args=("w2a",iteracje,))
-    
+    watek_1 = Thread(target=f_print_stdo, args=("w1a", iteracje,))
+    watek_2 = Thread(target=f_print_stdo, args=("w2a", iteracje,))
     watek_1.start()
     watek_2.start()
-    
     print("Watek głowny, koniec")
 
 # ------------------------------------------------------------------
