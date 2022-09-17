@@ -1,0 +1,357 @@
+% ustawienia dokumentu
+\documentclass{article}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{graphicx}	% do tabelki żeby centrować
+\usepackage{longtable}	% podział tabeli między strony, nie jest uzyte
+\usepackage{placeins}	% wymuszenie tekstu za tabelką
+\title{Python Institiute}
+\author{anana}
+\date{2022-09-06}
+
+
+% definicje kolorów
+\usepackage{color}
+\definecolor{pythonlexis}{RGB}{88,188,64}
+\definecolor{pythoncomment}{RGB}{239,134,64}
+
+
+% styl dla kodu python
+% wiecej opcji https://nasa.github.io/nasa-latex-docs/html/examples/listing.html
+\lstdefinestyle{pystyle}
+{
+    numberblanklines=false,
+    language=Python,
+    tabsize=4,
+    breaklines=true,
+    basicstyle=\small,
+    keywordstyle=\color{pythonlexis},
+    commentstyle=\color{pythoncomment}\upshape,
+}
+
+\begin{document}
+	\pagenumbering{gobble}
+	\maketitle
+
+	\newpage
+	\pagenumbering{arabic}
+	\tableofcontents
+	
+	\newpage
+	\section{PCEP - Entry}
+	This section contains information needed to be learned to complete PCEP course.
+	\subsection{General Language Information}
+	\subsubsection{What Makes Language}
+	Each language (human and computer) consist of the following elements:
+	\begin{itemize}
+	\item ALPHABET - set of symbols used to build words. Programming languages usualy base on Latin alphabet.
+	\item LEXIS - or dictionary - simple list of words which has some meaning.
+	\item SYNTAX - set of rules determining the words combination has sense. Syntax errors are detected by compiler / interpreter.
+	\item SEMANTICS - set of rules detrmining sytax has sense. Semantics errors are detected by programmers during code review. E.g.: we expecting a sum of two numbers but the result is a sum of two strings.
+	\begin{lstlisting}[language=Python]
+	a = input()
+	print(a + a)
+	\end{lstlisting}
+	\end{itemize}
+	\subsubsection{HLPL and LLPL}
+	HLPL - High Level Programming Languages - are easly understandable by humans, while LLPL - Low Level Programming Languages are those more friendly for machines. 
+	\paragraph{}
+	Ususally HLPL are easier to understand, code and debug. Can be easly ported to different computer architectures and can be run on any platform. They need interpreter, complirer or translator - a tool which perform translation from HLPL to form which is understandable by machine. Examples of HLPL: C, C++, Java, Python, JavaScript.
+	\paragraph{}
+	On the other hand LLPL are usualy hard to understand for human, therefore hard to develop and debug. Usually are closly dependednt on HW. They still need a tool - assembler to be translated to machine code (assembler language). This kind of development is kindly usefull in solution where high efficient or limited resources matter. Examples of LLPL: assembly language, machine language.
+	\begin{itemize}
+	\item SOURCE CODE - it is file containing code written by developer in HLPL.
+	\item COMPILER - a tool wchich read source code and turns it into assembly or bytecode or machine code.
+	\item ASSEMBLY LANGUAGE - low level programming language, which code is understandable for machine or for applications.
+	\item BYTECODE - low level code understandable for application, e.g. virtual machine of specific language.
+	\item MACHINE CODE - binary representation of code which can be run on HW directly. Consist of zeros and ones. Can be understand only by CPU.
+	\end{itemize}
+	\subsubsection{Compiler and Interpreter}
+	\paragraph{}
+	Source code written in HLPL is a file containing instruction which uses words or phrases easy understandable by human. To execute this code on machine it must be first translated to form which machine can understand. The proces of tranlating source code to machine code is performing by programs called interpreters or compilers.
+	\paragraph{}
+	During compilation the source code is translated only once - compiler scan whole source code and translate it into machine code. But after each, even smaller change in code the compilation must be repeated. Produced executable is ready to distribute as is, can be run on desired machine, no any other programs are required. Compilation process might be very long - it depend of project/program complexity. Compliler report error after scanning process of whole source code, this sometimes makes debugging harder. Worth to note that compliers does not translate source code to binary code directly but generate also intermediary objects, and linking process is needed.
+	\paragraph{}
+	During interpretation the source code (script) need to be run by interpreter, each line of source code is translated at time. Interpreter doing it fast (does not generate intermediary objects). Translation is stopped when first error appears in source code line. Interpreter must be installed on the machine. Without the interpreter it is not possible to run the source code. Interpreter is fast, but overall time to execute the process is much slower compared to binary execution of compiled program.
+
+	\newpage
+	\subsection{Versions of Python}
+	Different Python implementations exist.
+	\begin{itemize}
+	\item CPython - canonical or reference Python.Written in C language.
+	\item Cython - combination of C language and Python.
+	\item Jthon - Java implementation of Python.
+	\item PyPy and Ppython - Python for Python, restricted. It is used mainly as tool for developing of Python, as some things are easier perform in Python than in pure C language.
+	\end{itemize}
+	\paragraph{}
+	Python3 is not compatible with older version Python2.
+	\paragraph{}
+	Python is not suitable for low level programming - bare metal devices, hardware with limited computing resources. It is also not suitable for mobile device application.
+	\paragraph{}
+	Python can be successfully used in Web service development, PC applications, test sctipting, simulations, data analysis, AI.
+	\paragraph{}
+	Python is distributed by default with the standard library which is very extensive and provides users with a wide range of facilities.
+	
+	\newpage
+	\subsection{Built-in Functions}
+	Basic built-in function available with Python installation are:
+	\begin{itemize}
+	\item print()
+	\end{itemize}
+	\subsubsection{Built-in function: print()}
+	This is one most popular function which allows to communicate our script with us - it prints information to standard output by default (to console output). It accepts five arguments, but usually is used only with one argument - objects:
+	\begin{lstlisting}[style=pystyle]
+print(*objects, sep=' ', end='\n', file=sys.stdout, flush=False)
+	\end{lstlisting}
+	This function accept all python objects and return None.
+	Listening below shows few unusuall print function calls with their outputs:
+	\begin{lstlisting}[style=pystyle]
+# no arguments means that only default end="\n" is printing
+print()
+
+# print can accept single quotation mark as well as double quotation mark
+print("")
+
+print('')
+
+# we can provide object separated by comma. Default separator
+# cause that space is included after each printed object
+print("Ala", 1, 2, "", 3)
+Ala 1 2  3
+# we can modify default separator to different char
+print(1, 2, 3, sep="+")
+1+2+3
+# we can modify default last new line character to different 
+print('Kot means cat', end='\nKICIA*\n')
+Kot means cat
+KICIA*
+	\end{lstlisting}
+	
+	\newpage
+	\subsection{Built-in Types}
+	Built-in type are types which are always available in python installation and we do not have to import them. Basic build-in types are:
+	\begin{itemize}
+	\item numerics
+	\item sequences
+	\item mappings
+	\item classes
+	\item instances
+	\item exceptions
+	\end{itemize}
+	This is only generalised list of built-in types. To see each available built-int type provided by python run code:
+	\begin{lstlisting}[style=pystyle]
+import builtins as bi
+bitypeslist = [bit for bit in bi.__dict__.values() if isinstance(bit, type)]
+for item in bitypeslist:
+    print(item)
+	\end{lstlisting}
+	
+	Built-in are not python keywords, it means it is possible to use buit-in names for variable, which is strongly not recommended, and may lead to errors in code:
+	\begin{lstlisting}[style=pystyle]
+bool="ala"
+bool(1)
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+TypeError: 'str' object is not callable
+del(bool)
+bool(1)
+True
+	\end{lstlisting}
+Some collections classes are \textbf{muttable} - they rearrange their members in place. They return None. Other types migh be \textbf{immutable} - they cannot be modified, and making change to them new object is creating.
+	In sections below selected types will be described.
+	\subsubsection{Built-in types: numerics}
+	In Python are three different numeric types:
+	\begin{itemize}
+	\item integers
+	\item floating point numbers
+	\item complex numbers
+	\end{itemize}
+	\paragraph{}
+	Integers have unlimited precission (it is limited only by machine on which Python is running). Integers can be represented in different manner, take a look:
+	\begin{lstlisting}[style=pystyle]
+print(123)
+123
+print(1_2_3)
+123
+print(+111)
+111
+print(+0)
+0
+print(-0)
+0
+print(--123)
+123
+print(-123)
+-123 
+print(---123)
+-123 
+print(-+-+-123)
+-123
+	\end{lstlisting}
+	\paragraph{}
+	Floating point numbers are implemented using C language double data type. To get information about limits on current machine call function:
+	\begin{lstlisting}[style=pystyle]
+import sys
+sys.float_info
+sys.float_info(max=1.7976931348623157e+308, max_exp=1024, max_10_exp=308, min=2.2250738585072014e-308, min_exp=-1021, min_10_exp=-307, dig=15, mant_dig=53, epsilon=2.220446049250313e-16, radix=2, rounds=1)
+	\end{lstlisting}
+	Floats can be represented in different manner:
+	\begin{lstlisting}[style=pystyle]
+print(.123)
+0.123
+print(1_2_3.4)
+123.4
+print(+111)
+111
+print(3.)
+3.0
+print(-03.0)
+-3.0
+print(-0.)
+-0.0
+print(-.000)
+-0.0 
+print(---123)
+-123
+# Zero and minus zero are equal
+print(0==-.0000)
+True
+# Representing floating point in semantic notation (E, e)
+print(1e3)
+1000.0
+print(1e-3)
+0.001
+print(-1.e-2)
+-0.01
+print(1.E2)
+100.0
+print(0.E3)
+0.0
+	\end{lstlisting}
+	\paragraph{}
+	Complex numbers which have real and imaginary part, they base on floating point number. Assuming $z$ is complex number, real part can be accessed $z.real$, and imaginary $z.imag$.
+	\subsubsection{Built-in types: str (text sequence)}
+	Python str (string) is a textual data type. Strings are immutable (cannot be updated) sequences of Unicode code points. Strings can be put in single quotes, double quotes or tripple quotes (these can span multiple lines).
+	\paragraph{}
+	While single char data is not existing in Python each single character is actually single string. Thus, assuming $s$ is a not empty string: $s[0] == s[0:1]$.
+	\paragraph{}
+	Empty string length is equal to zero. Thus empty string is interpreted as $False$.
+	\begin{lstlisting}[style=pystyle]
+# Strings can be added
+"" + ' ' + "33" + ' rota'
+' 33 rota'
+# String can be multipled by a number.
+# Positive number duplicate string
+"Ala "*2
+'Ala Ala '
+# Zero or nrgative number creates empty string
+"Ala" * 0
+''
+	\end{lstlisting}
+	
+	\subsubsection{Built-in types: list (sequence)}
+	List is a mutable sequence, can store collections of any types. List can be costructed in several ways, some most common are:
+	\begin{itemize}
+	\item using pair of square brackets - [].
+	\item \raggedright using constructor list() or list(iterable) which accepts iterable type. \linebreak E.g.1: list(range(4)) - will produce list [0, 1, 2, 3].\linebreak E.g.2: list("I am") will produce list ['I', ' ', 'a', 'm'].
+	\item using a list comprehension - [element for element in iterable].
+	\end{itemize}
+
+	\subsubsection{Built-in types: tuple (sequence)}
+	Tuple is immutable sequence, can store collections of any types. Tuple can be constructed in following ways:
+	\begin{itemize}
+	\item using pair of parantheses - ().
+	\item using comma - 1, or (1,).
+	\item using elements separated by commas - 1,2,3 or (1,2,3).
+	\item \raggedright using constructor tuple() or tuple(iterable) which accepts iterable type. \linebreak E.g.1: tuple(range(1, 4)) - will produce tuple (1, 2, 3).
+	\end{itemize}
+	
+	\subsubsection{Built-in types: boolean}
+	Boolean are two constant (literals) object: True and False. They can be compared in following ways:
+	\begin{itemize}
+	\item True==False produces False
+	\item True$>$False produces True
+	\item True$<$False produces False
+	\end{itemize}
+	
+	\subsubsection{Literals}
+	Literals in Python are entities which does not change their value durign script execution - python constants. There are five types of literls:
+	\begin{itemize}
+	\item string literals - $literalstr="Some info"$
+	\item numeric literals - $literalfloat=1.2$
+	\item boolean literals - $literalbool=False$, $1==1$ which means $True$
+	\item special literals - $None$ which means lack of value
+	\item collections literals - list $[1,2,3]$, tuple $(11,2,33)$, dict $\{'k1': 123\}$, set $\{1, 3, 3\}$ 	
+	\end{itemize}
+
+	\newpage
+	\subsection{Variables}
+	A \textbf{variable} is a named location reserved to store values in the memory. A variable is created or initialized automatically when value is assigned to it for the very first time. Here are several notes about variables in Python:
+	\begin{itemize}
+	\item each variable must have unique name.
+	\item the same variable can store (point) any type of data (int, float, bool, str, list, anything) because Python variables are \textbf{dynamically typed} (no need to declare type of variable).
+	\item a variable name can contain: uppercase and lowercase letters, digit and $\_$ character. Can be construct with non-latin characters. Any other characters are forbidden.
+	\item variable name \textbf{MUST begin with LETTER or \_}.
+	\item uppercase letters are not the same as lowercase letters. Al is not al.
+	\item variable name cannot be any Python reserved keywords (lexis errors). Rorbiden letters: \textbf{False, True, None, and, or, as, is, in, not, if, else, elif, for, while, assert, break, continue, class, def, del, except, try, finally, from, global, import, lambda, nonlocal, pass, raise, return, with, yield, await, async}.
+	\end{itemize}
+	Python defines rules for variables naming convention in \href{https://peps.python.org/pep-0008/}{PEP8} document. Most recommended naming way: use lowercase letters separated by $\_$ character, e.g. first\_variable, var\_1, \_local\_data, if\_else\_can\_be\_combined.
+	
+		\newpage
+	\subsection{Operators}
+	Operators are used to perform operations on variables and values. Operators has their priority of execution in expressions to keep results consistent. An \textbf{expression} is connection of operator with data: -3, 2 + 3, 1 + (2-6) * 2.
+	Table below presents all python operators in ordered priority.
+
+
+\begin{table}[htb]
+%\begin{longtable}
+\centering\resizebox{\textwidth}{!}{
+\begin{tabular}{c l l l}%{p{0.2cm}p{2cm}p{3cm}p{3cm}}
+1  & ()                                                                                                            & Parenthesis                                                                                                                          & Highest priority!                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              \\
+2  & \begin{tabular}[c]{@{}l@{}}(expressions..)\\{[}expressions..]\\\{expressions..\}\\\{key: value\}\end{tabular} & \begin{tabular}[c]{@{}l@{}}Binding or\\ parenthesized \\expressions\\list display\\dictionary display\\set display\end{tabular}          &                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                \\
+3  & \begin{tabular}[c]{@{}l@{}}var[incex]\\var{[}incex:index]\\func(arg..)\\instance.attr\end{tabular}            & \begin{tabular}[c]{@{}l@{}}take incex\\take slice\\call function\\get attribute\end{tabular}                                         &                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                \\
+4  & await x                                                                                                       & await expression                                                                                                                     &                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                \\
+5  & **                                                                                                            & exponentiation                                                                                                                       & \begin{tabular}[c]{@{}l@{}}pow(base, power) == base ** power\\When at least one argument, base or power is a float, \\the result is a float.\\Right binding.\end{tabular}                                                                                                                                                                                                                                                                                                                                                                                                                                                        \\
+6  & \begin{tabular}[c]{@{}l@{}}+x\\-x\\\textasciitilde{}x\end{tabular}                                            & \begin{tabular}[c]{@{}l@{}}unary plus\\unary minu\\bitwise NOT \\ \textasciitilde{}x == -x-1\end{tabular}                               & \begin{tabular}[c]{@{}l@{}}Bitwise NOT change each binary value to \\opposite valie: 0 to 1, 1 to 0.\end{tabular}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        \\
+7  & \begin{tabular}[c]{@{}l@{}}*\\@\\/\\//\\\%\end{tabular}                                                       & \begin{tabular}[c]{@{}l@{}}multiplication\\matrix multiplication\\division\\floor division\\remainder \\(modulo division)\end{tabular} & \begin{tabular}[c]{@{}l@{}}Multiplication - if one argument is float, \\the result is float.\\Division - result always float. NO 0 division.\\Floor division - result always rounded to lesser integer. \\When one argument is float, result is rounded float. \\NO 0 division.\\0//3 = 0\\-1//4 = -2, because 1/4 = -1.25 and lesser value is -2\\-4//4 = -1\\-4//4. = -1.0\\-5//4 = -2\\5//4 = 1\\Remainder - only fractional. If one argument is \\float result is float. NO 0 division.\\-7\%3 = 2, because:\\1) -7//3 = -2.333 = -3\\2) -3(from step 1) * 3 (divisor) = -9\\3) -7(dividend) - (-9)(from step 2) = 2\end{tabular}
+\end{tabular}
+}
+\end{table}
+
+
+
+\begin{table}[htb]
+%\begin{longtable}
+\centering\resizebox{\textwidth}{!}{
+\begin{tabular}{c l l l}%{p{0.2cm}p{2cm}p{3cm}p{3cm}}
+8  & \begin{tabular}[c]{@{}l@{}}+\\-\end{tabular}                                                                  & \begin{tabular}[c]{@{}l@{}}addition\\subtraction\end{tabular}                                                                        & If one argument is float the result is float.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  \\
+9  & \begin{tabular}[c]{@{}l@{}}\textless{}\textless{}\\\textgreater{}\textgreater{}\end{tabular}                  & \begin{tabular}[c]{@{}l@{}}left shift\\right shift\end{tabular}                                                                      & \begin{tabular}[c]{@{}l@{}}3\textless{}\textless{}1 = 3*2 = 6\\3\textless{}\textless{}3 = 3*2*2*2 = 24\\13\textgreater{}\textgreater{}1 = 12 // 2 = 6\\13\textgreater{}\textgreater{}2 = 12 // 2 // 2 = 3\end{tabular}                                                                                                                                                                                                                                                                                                                                                                                                         \\
+10 &                                                                                                               & Bitwise AND                                                                                                                          &                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                \\
+11 & \^{}                                                                                                          & Bitwise XOR                                                                                                                          &                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                \\
+12 & \textbar{}                                                                                                    & Bitwise OR                                                                                                                           &                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                \\
+13 & \begin{tabular}[c]{@{}l@{}}in\\not in\\is\\is not\end{tabular}                                                & \begin{tabular}[c]{@{}l@{}}identity operator\\membership operator\end{tabular}                                                       &                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                \\
+14 & \begin{tabular}[c]{@{}l@{}}!=\\==\end{tabular}                                                                & equality operators                                                                                                                   &                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                \\
+15 & \begin{tabular}[c]{@{}l@{}}\textless{}\\\textless{}=\\\textgreater{}\\\textgreater{}=\end{tabular}            & comparison operators                                                                                                                 &                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                \\
+16 & not x                                                                                                         & boolean NOT                                                                                                                          &                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                \\
+17 & and                                                                                                           & boolean AND                                                                                                                          &                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                \\
+18 & or                                                                                                            & boolean OR                                                                                                                           &                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                \\
+19 & if-else                                                                                                       & conditional expression                                                                                                               &                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                \\
+20 & lambda                                                                                                        & lambda expression                                                                                                                    &                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                \\
+21 & :=                                                                                                            & assignment expression                                                                                                                &                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+\end{tabular}
+}
+\end{table}
+%\end{longtable}
+
+\FloatBarrier	% Force text after table
+
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+
+
+
+
+
+
+
+	
+\end{document}

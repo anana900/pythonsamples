@@ -13,6 +13,14 @@ Wystartowanie wątku funkcją start() wykonuje go natychmiastowo. Główny wąte
 Wywołanie dodatkowej funkcji join() sprawia że wywołanie wątku będzie w najbliższym dostępnym czasie procesora.
 Główny wątek jawnie czekka na zakończenie wykonywania wątku pobocznego.
 
+GIL - Global Interpreter Lock - mechanizm który sprawia ze w CPythonie w danym momencie czasowym dostęp do obiektów
+Pythona ma tylko jeden wątek. Inaczej to oznacza że tak naprawdę kod nie wykonuje się równolegle. Sąoperacje które
+moga być wykonywane w sposób równoległy (zwolnione sa o restrykcji GIL): operacji I/O np print, operacje na pliku,
+operacje na Numpy, przetwarzanie obrazów, wykonujac C kod i jawnie zwalniając blokadę.
+start() - uruchamia wątek (wątek przechodzi ze stanu nowy -> działający)
+join() - sprawia że wątek główny jawnie czeka na zakończenie wątu pobocznego.
+Lock() - tworzy obiekt lock który możeby wykozystywać do bezpiecznego dostępu do zasobów
+
 """
 from threading import (
     Thread, 
@@ -31,7 +39,7 @@ from src.dekoratory.dekoratory import dekorator_pomiar_czasu
 
 # ------------------------------------------------------------------
 # Thread
-# Bez Join
+# Bez Join. Wykonuję wątki poboczne natychmiastowo, a wątek główny nie czeka na wątki poboczne.
 # ------------------------------------------------------------------
 def f_print_stdo(nazwa_watku, ile_liczb):
     for element in range(ile_liczb):
@@ -44,32 +52,31 @@ def watek_wywolanie_bez_czekania_na_watek_glowny(iteracje=10):
     watek_2 = Thread(target=f_print_stdo, args=("w2a", iteracje,))
     watek_1.start()
     watek_2.start()
-    print("Watek głowny, koniec")
+    print("Watek głowny, kontynuacja nie czekając na zakonczenie wątków pobocznych.")
 
 # ------------------------------------------------------------------
 # Thread
-# Join
+# Join - wywołanie wątku w najbliższym dostępnym czasie procesora. Wątek główny czeka na zakończenie pobocznych.
 # ------------------------------------------------------------------
 @dekorator_pomiar_czasu
 def watek_wywolanie_z_czekaniem_na_watek_glowny(iteracje=10):
     watek_1 = Thread(target=f_print_stdo,args=("w1b",iteracje,))
     watek_2 = Thread(target=f_print_stdo,args=("w2b",iteracje,))
-
     watek_1.start()
     watek_2.start()
     watek_1.join()
     watek_2.join()    
-    print("Watek głowny, koniec")
+    print("Watek głowny, czekam na wykonanie wątków pobocznych dopiero kontynułuję wątek główny.")
 
 # ------------------------------------------------------------------
 # Thread
-# Lock
+# Lock - pozwala synchronizować dostęp do wspólnych zasbów.
 # ------------------------------------------------------------------
-def f_print_stdo_lock(kto, ile_liczb, blokowanie):
+def f_print_stdo_lock(nazwa_watku, ile_liczb, blokowanie):
     for element in range(ile_liczb):
         with blokowanie:
             sleep(1.0/randint(10000, 1000000))
-            print("{0}:{1}".format(kto, element))
+            print("{0}:{1}".format(nazwa_watku, element))
 
 @dekorator_pomiar_czasu
 def watek_wywolanie_z_blokada(iteracje=10):
@@ -79,21 +86,16 @@ def watek_wywolanie_z_blokada(iteracje=10):
         w.start()
 
 # ------------------------------------------------------------------
-# Thread
-# Lock
+# Thread + Lock - przyklad z wyszukiwaniem panstw
 # ------------------------------------------------------------------
 def szukaj_stolic(blokada, panstwo):
-    '''
-    with lock
-    '''
+    # with lock
     stolica = znajdz_stolice([panstwo])
     with blokada:
         print(stolica)
         
 def szukaj_stolic2(blokada, panstwo):
-    '''
-    lock.acquire(), lock.release()
-    '''
+    # lock.acquire(), lock.release()
     stolica = znajdz_stolice([panstwo])
     blokada.acquire()
     print(stolica)
@@ -257,13 +259,14 @@ def watek_klasa_thread_blokada_przeszukiwanie_strony(panstwa):
     [w.start() for w in lista_watkow]
     print(f'Lista aktywnych wątków: {enumerate()}')
     [w.join() for w in lista_watkow]
-      
+
+"""
+GIL
+"""
+def gil_io() -> None:
+    pass
 
 if __name__ == '__main__':
-    #watek_wywolanie_bez_czekania_na_watek_glowny(5)
-    #watek_wywolanie_z_czekaniem_na_watek_glowny(4)
-    #watek_wywolanie_z_blokada(10)
-    
     panstwa_europa_full = (
         "Russia", "Germany", "United Kingdom", "France",
         "Italy", "Spain", "Ukraine", "Poland",
@@ -277,9 +280,12 @@ if __name__ == '__main__':
         "Luxembourg", "Malta", "Iceland", "Andorra",
         "Monaco", "Liechtenstein", "San Marino", "Holy See"
         )
-    #watek_blokada_wydajnosc_przeszukiwanie_strony(panstwa_europa_full[:8])
-    #watek_semafor_blokada_przeszukiwanie_strony(panstwa[:8])
-    #watek_kolejka_blokada_przeszukiwanie_strony(panstwa[:8])
-    #watek_klasa_blokada_przeszukiwanie_strony(panstwa[:8])
-    #watek_klasa_kolejka_blokada_przeszukiwanie_strony(panstwa[:8])
-    watek_klasa_thread_blokada_przeszukiwanie_strony(panstwa_europa_full[:8])
+    # watek_wywolanie_bez_czekania_na_watek_glowny(5)
+    # watek_wywolanie_z_czekaniem_na_watek_glowny(4)
+    # watek_wywolanie_z_blokada(10)
+    # watek_blokada_wydajnosc_przeszukiwanie_strony(panstwa_europa_full[:8])
+    watek_semafor_blokada_przeszukiwanie_strony(panstwa_europa_full[:8])
+    # watek_kolejka_blokada_przeszukiwanie_strony(panstwa_europa_full[:8])
+    # watek_klasa_blokada_przeszukiwanie_strony(panstwa_europa_full[:8])
+    # watek_klasa_kolejka_blokada_przeszukiwanie_strony(panstwa_europa_full[:8])
+    # watek_klasa_thread_blokada_przeszukiwanie_strony(panstwa_europa_full[:8])
