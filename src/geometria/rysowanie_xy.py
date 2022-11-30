@@ -1,6 +1,68 @@
+import matplotlib
 from matplotlib import pyplot as plt
 from matplotlib.patches import Rectangle
 from typing import Union
+matplotlib.use("TkAgg")
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import tkinter as tk
+from tkinter import ttk
+
+
+class StartPage(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+        label = tk.Label(self, text="Start Page")
+        label.pack(pady=10, padx=10)
+        # button = ttk.Button(self, text="Visit Page 1", command=lambda: controller.show_frame(PageOne))
+        # button.pack()
+
+        # Button for closing
+        exit_button = ttk.Button(self, text="Exit", command=lambda: exit(0))
+        exit_button.pack()
+
+        # Rysowanie wykresu
+        m = MultiROI(500, 500, lines=False, colored=True)
+        increment_y = m.height_minimum // 2
+        increment_x = m.width_minimum // 2
+        Region0 = m.draw_configuration("min", "min", "min", m.height_minimum + increment_y)
+        Region1 = m.draw_configuration("min", "min", "min", "max")
+        # Region1 = m.draw_configuration("min", "min", "max", 10)
+        # Region2 = m.draw_configuration("min", 150, "max", 222)
+        m.reset_color()
+        m.draw_expected("min", "min", "min", m.height_minimum)
+        m.draw_expected("min", "min", Region0.SubRegionOffsetX, Region0.SubRegionOffsetY)
+        m.enable()
+
+        canvas = FigureCanvasTkAgg(m.fig, self)
+        canvas.draw()
+        canvas.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
+
+
+class MainApp(tk.Tk):
+    def __init__(self, *args, **kwargs):
+        tk.Tk.__init__(self, *args, **kwargs)
+
+        #tk.Tk.iconbitmap(self, default="makeiconandadd.ico")
+        tk.Tk.wm_title(self, "Multiple Region Drawer")
+
+        container = tk.Frame(self)
+        container.pack(side="top", fill="both", expand=True)
+        container.grid_rowconfigure(0, weight=1)
+        container.grid_columnconfigure(0, weight=1)
+
+        self.geometry('1200x800')
+
+        self.frames = {}
+
+        for F in (StartPage,):
+            frame = F(container, self)
+            self.frames[F] = frame
+            frame.grid(row=0, column=0, sticky="nsew")
+        self.show_frame(StartPage)
+
+    def show_frame(self, cont):
+        frame = self.frames[cont]
+        frame.tkraise()
 
 
 class Region:
@@ -26,6 +88,10 @@ class Region:
 
 
 class MultiROI:
+    FONT_SIZE = 6
+    FRAME_WIDTH = 8
+    FRAME_HEIGHT = 4
+
     def __init__(self, sensor_width: int = 0, sensor_height: int = 0,
                  colored: bool = True, lines: bool = False, hide_values: bool = True):
         self.configured_regions = list()
@@ -39,9 +105,10 @@ class MultiROI:
         print(f"Sensor defined: Width {self.sensor_width}, Height {self.sensor_height}, "
               f"Width_min {self.width_minimum}, Height_min {self.height_minimum}")
         scale_factor = self.sensor_width/self.sensor_height
-        self.fig, (self.ax1, self.ax2) = plt.subplots(1, 2, figsize=(8*scale_factor, 4), sharex=True, sharey=True)
+        self.fig, (self.ax1, self.ax2) = plt.subplots(1, 2, figsize=(self.FRAME_WIDTH*scale_factor, self.FRAME_HEIGHT),
+                                                      sharex=True, sharey=True)
 
-    def draw_region(self, axis, width, height, offset_x, offset_y, _no, _colo) -> Region:
+    def _draw_region(self, axis, width, height, offset_x, offset_y, _no, _colo) -> Region:
         #  Print Region
         axis.add_patch(Rectangle((offset_x, offset_y), width, height,
                                  label=_no, fill=None, alpha=0.5, color=_colo))
@@ -51,7 +118,7 @@ class MultiROI:
             axis.hlines(offset_y, 0, offset_x, linestyle="dotted", alpha=0.3, color=_colo)
         # Print label
         axis.annotate(f"Region{_no}", (offset_x + width//2, offset_y + height//2),
-                      color=_colo, weight='bold', fontsize=6, ha='center', va='center')
+                      color=_colo, weight='bold', fontsize=self.FONT_SIZE, ha='center', va='center')
         region = Region(width, height, offset_x, offset_y, _no, _colo)
         return region
 
@@ -71,7 +138,7 @@ class MultiROI:
         self.ax1.set_aspect('equal')
         #  Print Region
         _no, _colo = self._select_color(self.colored)
-        region = self.draw_region(self.ax1, width, height, offset_x, offset_y, _no, _colo)
+        region = self._draw_region(self.ax1, width, height, offset_x, offset_y, _no, _colo)
         self.configured_regions.append(region)
         return region
 
@@ -91,7 +158,7 @@ class MultiROI:
         self.ax2.set_aspect('equal')
         #  Print Region
         _no, _colo = self._select_color(self.colored)
-        return self.draw_region(self.ax2, width, height, offset_x, offset_y, _no, _colo)
+        return self._draw_region(self.ax2, width, height, offset_x, offset_y, _no, _colo)
 
     def draw_multi_roi(self):
         width_sum = []
@@ -109,7 +176,7 @@ class MultiROI:
         _colo = "black"
         #  Print Region
         self.ax2.add_patch(Rectangle((offset_x, offset_y), multi_roi_width, multi_roi_height,
-                                     linestyle="dashdot", fill=None, alpha=1, color=_colo))
+                                     linestyle="dashdot", fill=None, hatch='//', alpha=1, color=_colo))
         if self.lines:
             self.ax2.vlines(offset_x, 0, offset_y, linestyle="dotted", alpha=0.3, color=_colo)
             self.ax2.hlines(offset_y, 0, offset_x, linestyle="dotted", alpha=0.3, color=_colo)
@@ -197,41 +264,26 @@ class MultiROI:
 
     def enable(self):
         self._draw_result()
-        plt.show()
+        #plt.show()
 
 
 if __name__ == '__main__':
-    m = MultiROI(500, 500, lines=False, colored=False)
-    Region0 = m.draw_configuration("min", "min", 60, 60)
-    Region1 = m.draw_configuration("min", "min", "max", 10)
-    Region2 = m.draw_configuration("min", 150, "max", 222)
-    m.reset_color()
-    m.draw_expected("min", "min", 60, Region1.SubRegionHeight + Region1.SubRegionOffsetY)
-    m.draw_expected("min", "min", Region0.SubRegionWidth + Region0.SubRegionOffsetX, 10)
-    m.draw_expected("min", 150, Region0.SubRegionWidth + Region0.SubRegionOffsetX,
-                    Region1.SubRegionHeight + Region1.SubRegionOffsetY + Region0.SubRegionHeight)
-    m.enable()
+    app = MainApp()
+    app.mainloop()
 
-# # sort region by OffsetX
-# region_list = sorted(region_list, key=lambda x: x.SubRegionOffsetX)
-# previous_width = None
-# width_shift = 0
-# previous_height = None
-# height_shift = 0
-# for region in region_list:
-#     if previous_width:
-#         if region.SubRegionOffsetX > previous_width:
-#             width_shift = region.SubRegionOffsetX - previous_width
-#         else:
-#             width_shift = 0
-#     previous_width = region.SubRegionOffsetX + region.SubRegionWidth - width_shift
-#     if previous_height:
-#         if region.SubRegionOffsetY > previous_height:
-#             height_shift = region.SubRegionOffsetY - previous_height
-#         else:
-#             height_shift = 0
-#     previous_height = region.SubRegionOffsetY + region.SubRegionHeight - height_shift
-#     self.draw_region(self.ax2, region.SubRegionWidth, region.SubRegionHeight,
-#                      region.SubRegionOffsetX - width_shift,
-#                      region.SubRegionOffsetY - height_shift,
-#                      region.label, region.color)
+    # m = MultiROI(500, 500, lines=False, colored=True)
+    # increment_y = m.height_minimum // 2
+    # increment_x = m.width_minimum // 2
+    # Region0 = m.draw_configuration("min", "min", "min", m.height_minimum + increment_y)
+    # Region1 = m.draw_configuration("min", "min", "min", "max")
+    # #Region1 = m.draw_configuration("min", "min", "max", 10)
+    # #Region2 = m.draw_configuration("min", 150, "max", 222)
+    # m.reset_color()
+    # m.draw_expected("min", "min", "min", m.height_minimum)
+    # m.draw_expected("min", "min", Region0.SubRegionOffsetX, Region0.SubRegionOffsetY)
+    # #m.draw_expected("min", "min", 60, Region1.SubRegionHeight + Region1.SubRegionOffsetY)
+    # #m.draw_expected("min", "min", Region0.SubRegionWidth + Region0.SubRegionOffsetX, 10)
+    # #m.draw_expected("min", 150, Region0.SubRegionWidth + Region0.SubRegionOffsetX, Region1.SubRegionHeight + Region1.SubRegionOffsetY + Region0.SubRegionHeight)
+    # m.enable()
+
+
