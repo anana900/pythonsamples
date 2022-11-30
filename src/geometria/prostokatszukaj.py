@@ -52,13 +52,43 @@ class FindRectangle:
             yield from self.split_rectangles(below, self.clip_rectangles(below, rects))
 
 
+
 if __name__ == '__main__':
     frame = Rectangle(0, 0, 10, 10)
-    r1 = Rectangle(0, 5, 5, 10)
-    r2 = Rectangle(5, 0, 10, 5)
+    #              x1 y1 x2 y2
+    r1 = Rectangle(0, 5, 2, 7)
+    r2 = Rectangle(6, 2, 8, 4)
     rects = list()
     rects.append(r1)
     rects.append(r2)
+
+    class Rect:
+        def __init__(self, x1, y1, x2, y2):
+            self.x1, self.y1, self.x2, self.y2 = x1, y1, x2, y2
+        def __repr__(self):
+            return f"{self.x1} {self.y1} {self.x2} {self.y2}"
+
+    r1 = Rect(0, 5, 2, 7)
+    r2 = Rect(6, 2, 8, 4)
+    rects = list()
+    rects.append(r1)
+    rects.append(r2)
+    print(rects)
+
+    shift_y = 0
+    for y in range(10):
+        if y not in set(list(range(2, 4)) + list(range(5, 7))):
+            shift_y += 1
+        else:
+            print("odjac od wszystkich regionow ", shift_y)
+            for r in rects:
+                r.y1 -= shift_y
+                r.y2 -= shift_y
+            shift_y = 0
+
+    print(rects)
+    exit(0)
+
     find_rectangle = FindRectangle()
     wynik = find_rectangle.find_rectangle((10, 10, 0, 0), [(5, 5, 5, 0), (5, 5, 0, 5)])
     print(wynik)
