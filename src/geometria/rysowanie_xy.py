@@ -2,7 +2,7 @@ import matplotlib
 from matplotlib import pyplot as plt
 from matplotlib.patches import Rectangle
 from typing import Union
-matplotlib.use("TkAgg")
+#matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import tkinter as tk
 from tkinter import ttk
@@ -13,12 +13,19 @@ class StartPage(tk.Frame):
         tk.Frame.__init__(self, parent)
         label = tk.Label(self, text="Start Page")
         label.pack(pady=10, padx=10)
-        # button = ttk.Button(self, text="Visit Page 1", command=lambda: controller.show_frame(PageOne))
-        # button.pack()
 
         # Button for closing
         exit_button = ttk.Button(self, text="Exit", command=lambda: exit(0))
         exit_button.pack()
+
+        r0 = ttk.Entry(self)
+        r0.pack()
+        r1 = ttk.Entry(self)
+        r1.pack()
+        r2 = ttk.Entry(self)
+        r2.pack()
+        r3 = ttk.Entry(self)
+        r3.pack()
 
         # Rysowanie wykresu
         m = MultiROI(500, 500, lines=False, colored=True)
@@ -50,8 +57,7 @@ class MainApp(tk.Tk):
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
 
-        self.geometry('1200x800')
-
+        self.geometry('800x600')
         self.frames = {}
 
         for F in (StartPage,):
