@@ -77,7 +77,8 @@ class MainApp(tk.Tk):
         region_raw_list = [self.r0.get(), self.r1.get(), self.r2.get(), self.r3.get()]
         for index, region_raw in enumerate(region_raw_list):
             if region_raw:
-                w, h, ox, oy, *_ = [int(item) for item in region_raw.split(',')]
+                w, h, ox, oy, *_ = [item.strip().lower() for item in region_raw.split(',')]
+                w, h, ox, oy = self.m.serialise_and_trim_to_sensor(w, h, ox, oy)
                 self.m.draw_configuration(w, h, ox, oy, f"Region{index}")
         # Draw region results
         self.m.find_expected_regions_position(self.m.configured_regions)
@@ -168,7 +169,7 @@ class MultiROI:
 
     def draw_configuration(self, width: Union[int, str], height: Union[int, str],
                            offset_x: Union[int, str] = 0, offset_y: Union[int, str] = 0, label="") -> None:
-        width, height, offset_x, offset_y = self._serialise_and_trim_to_sensor(width, height, offset_x, offset_y)
+        width, height, offset_x, offset_y = self.serialise_and_trim_to_sensor(width, height, offset_x, offset_y)
         # Plot limits and axis
         self.ax1.set_xlim([0, self.sensor_width])
         self.ax1.set_ylim([0, self.sensor_height])
@@ -186,7 +187,7 @@ class MultiROI:
 
     def draw_expected(self, width: Union[int, str], height: Union[int, str],
                       offset_x: Union[int, str] = 0, offset_y: Union[int, str] = 0, label="") -> None:
-        width, height, offset_x, offset_y = self._serialise_and_trim_to_sensor(width, height, offset_x, offset_y)
+        width, height, offset_x, offset_y = self.serialise_and_trim_to_sensor(width, height, offset_x, offset_y)
         # Plot limits and axis
         self.ax2.set_xlim([0, self.sensor_width])
         self.ax2.set_ylim([0, self.sensor_height])
@@ -236,51 +237,36 @@ class MultiROI:
         self.ax2.set_aspect('equal')
         self.draw_expected_roi()
 
-    def _serialise_and_trim_to_sensor(self, width, height, offset_x, offset_y):
-        # serialise
-        if width == "min":
-            width = self.width_minimum
-        if width == "max":
-            width = self.sensor_width
-        if height == "min":
-            height = self.height_minimum
-        if height == "max":
-            height = self.sensor_height
-        if offset_x == "min":
-            offset_x = 0
-        if offset_x == "max":
-            offset_x = self.sensor_width - width
-        if offset_y == "min":
-            offset_y = 0
-        if offset_y == "max":
-            offset_y = self.sensor_height - height
-        # trim
-        w, h, ox, oy = width, height, offset_x, offset_y
-        if width > self.sensor_width:
-            w = self.sensor_width
-            print(f"WARNING - clipping Width {width} -> {w}")
-        if width < self.width_minimum:
-            w = self.width_minimum
-            print(f"WARNING - clipping Width {width} -> {w}")
-        if height > self.sensor_height:
-            h = self.sensor_height
-            print(f"WARNING - clipping Height {height} -> {h}")
-        if height < self.height_minimum:
-            h = self.height_minimum
-            print(f"WARNING - clipping Height {height} -> {h}")
-        if offset_x < 0:
-            ox = 0
-            print(f"WARNING - clipping OffsetX {offset_x} -> {ox}")
-        if offset_x > self.sensor_width - width:
-            ox = self.sensor_width - width
-            print(f"WARNING - clipping OffsetX {offset_x} -> {ox}")
-        if offset_y < 0:
-            oy = 0
-            print(f"WARNING - clipping OffsetY {offset_y} -> {oy}")
-        if offset_y > self.sensor_height - height:
-            oy = self.sensor_height - height
-            print(f"WARNING - clipping OffsetY {offset_y} -> {oy}")
-        return w, h, ox, oy
+    def serialise_and_trim_to_sensor(self, width, height, offset_x, offset_y) -> tuple:
+        if isinstance(width, str):
+            if width == "min":
+                width = self.width_minimum
+            elif width == "max":
+                width = self.sensor_width
+            else:
+                width = int(width)
+        if isinstance(height, str):
+            if height == "min":
+                height = self.height_minimum
+            elif height == "max":
+                height = self.sensor_height
+            else:
+                height = int(height)
+        if isinstance(offset_x, str):
+            if offset_x == "min":
+                offset_x = 0
+            elif offset_x == "max":
+                offset_x = self.sensor_width - width
+            else:
+                offset_x = int(offset_x)
+        if isinstance(offset_y, str):
+            if offset_y == "min":
+                offset_y = 0
+            elif offset_y == "max":
+                offset_y = self.sensor_height - height
+            else:
+                offset_y = int(offset_y)
+        return width, height, offset_x, offset_y
 
     @staticmethod
     def _sensor_parameters(sensor_width, sensor_height) -> tuple:
