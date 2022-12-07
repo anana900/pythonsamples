@@ -83,7 +83,7 @@ class MainApp(tk.Tk):
         # Draw region results
         self.m.find_expected_regions_position(self.m.configured_regions)
         for rr in self.m.expected_regions:
-            self.m.draw_expected(rr.SubRegionWidth, rr.SubRegionHeight, rr.SubRegionOffsetX, rr.SubRegionOffsetY, rr.label)
+            self.m.draw_expected(rr.Width, rr.Height, rr.OffsetX, rr.OffsetY, rr.label)
         self.m.draw_result()
         # handle graph presentation
         if self.canvas:
@@ -104,26 +104,26 @@ class MainApp(tk.Tk):
 
 class Region:
     def __init__(self, width, height, offset_x, offset_y, label=""):
-        self.SubRegionWidth = width
-        self.SubRegionWidth_minimum = 0
-        self.SubRegionWidth_maximum = 0
-        self.SubRegionWidth_increment = 0
-        self.SubRegionHeight = height
-        self.SubRegionHeight_minimum = 0
-        self.SubRegionHeight_maximum = 0
-        self.SubRegionHeight_increment = 0
-        self.SubRegionOffsetX = offset_x
-        self.SubRegionOffsetX_minimum = 0
-        self.SubRegionOffsetX_maximum = 0
-        self.SubRegionOffsetX_increment = 0
-        self.SubRegionOffsetY = offset_y
-        self.SubRegionOffsetY_minimum = 0
-        self.SubRegionOffsetY_maximum = 0
-        self.SubRegionOffsetY_increment = 0
+        self.Width = width
+        self.Width_minimum = 0
+        self.Width_maximum = 0
+        self.Width_increment = 0
+        self.Height = height
+        self.Height_minimum = 0
+        self.Height_maximum = 0
+        self.Height_increment = 0
+        self.OffsetX = offset_x
+        self.OffsetX_minimum = 0
+        self.OffsetX_maximum = 0
+        self.OffsetX_increment = 0
+        self.OffsetY = offset_y
+        self.OffsetY_minimum = 0
+        self.OffsetY_maximum = 0
+        self.OffsetY_increment = 0
         self.label = label
 
     def __repr__(self):
-        return f"{self.SubRegionWidth} {self.SubRegionHeight} {self.SubRegionOffsetX} {self.SubRegionOffsetY}"
+        return f"{self.Width} {self.Height} {self.OffsetX} {self.OffsetY}"
 
 
 class MultiROI:
@@ -155,16 +155,16 @@ class MultiROI:
             _colo = "black"
         _label = region.label
         #  Print Region
-        axis.add_patch(Rectangle((region.SubRegionOffsetX, region.SubRegionOffsetY),
-                                 region.SubRegionWidth, region.SubRegionHeight,
+        axis.add_patch(Rectangle((region.OffsetX, region.OffsetY),
+                                 region.Width, region.Height,
                                  label=_label, fill=None, alpha=0.5, color=_colo))
         # Print dotted lines
         if self.lines:
-            axis.vlines(region.SubRegionOffsetX, 0, region.SubRegionOffsetY, linestyle="dotted", alpha=0.3, color=_colo)
-            axis.hlines(region.SubRegionOffsetY, 0, region.SubRegionOffsetX, linestyle="dotted", alpha=0.3, color=_colo)
+            axis.vlines(region.OffsetX, 0, region.OffsetY, linestyle="dotted", alpha=0.3, color=_colo)
+            axis.hlines(region.OffsetY, 0, region.OffsetX, linestyle="dotted", alpha=0.3, color=_colo)
         # Print label
-        axis.annotate(region.label, (region.SubRegionOffsetX + region.SubRegionWidth//2,
-                                     region.SubRegionOffsetY + region.SubRegionHeight//2),
+        axis.annotate(region.label, (region.OffsetX + region.Width//2,
+                                     region.OffsetY + region.Height//2),
                       color=_colo, weight='bold', fontsize=self.FONT_SIZE, ha='center', va='center')
 
     def draw_configuration(self, width: Union[int, str], height: Union[int, str],
@@ -207,8 +207,8 @@ class MultiROI:
         height_sum = []
         if self.expected_regions:
             for region in self.expected_regions:
-                width_sum += list(range(region.SubRegionOffsetX, region.SubRegionOffsetX + region.SubRegionWidth))
-                height_sum += list(range(region.SubRegionOffsetY, region.SubRegionOffsetY + region.SubRegionHeight))
+                width_sum += list(range(region.OffsetX, region.OffsetX + region.Width))
+                height_sum += list(range(region.OffsetY, region.OffsetY + region.Height))
             multi_roi_width_points = sorted(list(set(width_sum)))
             multi_roi_width = len(multi_roi_width_points)
             multi_roi_height_points = sorted(list(set(height_sum)))
@@ -280,14 +280,14 @@ class MultiROI:
 
     def _get_offset_y_as_set(self, regions: list) -> set:
         total_height_list = []
-        height_lists = [list(range(r.SubRegionOffsetY, r.SubRegionOffsetY + r.SubRegionHeight)) for r in regions]
+        height_lists = [list(range(r.OffsetY, r.OffsetY + r.Height)) for r in regions]
         for height_list in height_lists:
             total_height_list += height_list
         return set(total_height_list)
 
     def _get_offset_x_as_set(self, regions: list) -> set:
         total_width_list = []
-        width_lists = [list(range(r.SubRegionOffsetX, r.SubRegionOffsetX + r.SubRegionWidth)) for r in regions]
+        width_lists = [list(range(r.OffsetX, r.OffsetX + r.Width)) for r in regions]
         for width_list in width_lists:
             total_width_list += width_list
         return set(total_width_list)
@@ -296,39 +296,39 @@ class MultiROI:
         new_regions = []
         new_regions_final = []
         if len(regions) > 1:
-            regions_sorted_by_offset_y = sorted(regions, key=lambda region: region.SubRegionOffsetY)
+            regions_sorted_by_offset_y = sorted(regions, key=lambda region: region.OffsetY)
             sum_of_offset_x_shifts = 0
             sum_of_offset_y_shifts = 0
             height_set = self._get_offset_y_as_set(regions)
             new_regions.append(regions_sorted_by_offset_y[0])
             for r_first, r_second in zip(regions_sorted_by_offset_y[:-1], regions_sorted_by_offset_y[1:]):
-                if r_first.SubRegionHeight + r_first.SubRegionOffsetY < r_second.SubRegionOffsetY \
-                        and not height_set & set(list(range(r_first.SubRegionHeight + r_first.SubRegionOffsetY, r_second.SubRegionOffsetY))):
-                    rr = Region(r_second.SubRegionWidth, r_second.SubRegionHeight, r_second.SubRegionOffsetX,
-                                r_first.SubRegionHeight + r_first.SubRegionOffsetY - sum_of_offset_y_shifts, r_second.label)
-                    y = (r_second.SubRegionOffsetY - (r_first.SubRegionHeight + r_first.SubRegionOffsetY))
+                if r_first.Height + r_first.OffsetY < r_second.OffsetY \
+                        and not height_set & set(list(range(r_first.Height + r_first.OffsetY, r_second.OffsetY))):
+                    rr = Region(r_second.Width, r_second.Height, r_second.OffsetX,
+                                r_first.Height + r_first.OffsetY - sum_of_offset_y_shifts, r_second.label)
+                    y = (r_second.OffsetY - (r_first.Height + r_first.OffsetY))
                     sum_of_offset_y_shifts += y
                     new_regions.append(rr)
                 else:
-                    rr = Region(r_second.SubRegionWidth, r_second.SubRegionHeight, r_second.SubRegionOffsetX,
-                                r_second.SubRegionOffsetY - sum_of_offset_y_shifts, r_second.label)
+                    rr = Region(r_second.Width, r_second.Height, r_second.OffsetX,
+                                r_second.OffsetY - sum_of_offset_y_shifts, r_second.label)
                     new_regions.append(rr)
 
-            regions_sorted_by_offset_x = sorted(new_regions, key=lambda region: region.SubRegionOffsetX)
+            regions_sorted_by_offset_x = sorted(new_regions, key=lambda region: region.OffsetX)
             width_set = self._get_offset_x_as_set(regions_sorted_by_offset_x)
             new_regions_final.append(regions_sorted_by_offset_x[0])
             for r_first, r_second in zip(regions_sorted_by_offset_x[:-1], regions_sorted_by_offset_x[1:]):
-                if r_first.SubRegionWidth + r_first.SubRegionOffsetX < r_second.SubRegionOffsetX \
-                        and not width_set & set(list(range(r_first.SubRegionWidth + r_first.SubRegionOffsetX, r_second.SubRegionOffsetX))):
-                    rr = Region(r_second.SubRegionWidth, r_second.SubRegionHeight,
-                                r_first.SubRegionWidth + r_first.SubRegionOffsetX - sum_of_offset_x_shifts,
-                                r_second.SubRegionOffsetY, r_second.label)
-                    x = (r_second.SubRegionOffsetX - (r_first.SubRegionWidth + r_first.SubRegionOffsetX))
+                if r_first.Width + r_first.OffsetX < r_second.OffsetX \
+                        and not width_set & set(list(range(r_first.Width + r_first.OffsetX, r_second.OffsetX))):
+                    rr = Region(r_second.Width, r_second.Height,
+                                r_first.Width + r_first.OffsetX - sum_of_offset_x_shifts,
+                                r_second.OffsetY, r_second.label)
+                    x = (r_second.OffsetX - (r_first.Width + r_first.OffsetX))
                     sum_of_offset_x_shifts += x
                     new_regions_final.append(rr)
                 else:
-                    rr = Region(r_second.SubRegionWidth, r_second.SubRegionHeight,
-                                r_second.SubRegionOffsetX - sum_of_offset_x_shifts, r_second.SubRegionOffsetY, r_second.label)
+                    rr = Region(r_second.Width, r_second.Height,
+                                r_second.OffsetX - sum_of_offset_x_shifts, r_second.OffsetY, r_second.label)
                     new_regions_final.append(rr)
         else:
             new_regions_final = regions
