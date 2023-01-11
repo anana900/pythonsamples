@@ -1,13 +1,8 @@
-import random
-
-import matplotlib
 from matplotlib import pyplot as plt
 from matplotlib.patches import Rectangle
 from typing import Union
-#matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import tkinter as tk
-from tkinter import ttk
 
 import signal
 signal.signal(signal.SIGINT, signal.SIG_DFL)
@@ -15,57 +10,125 @@ signal.signal(signal.SIGINT, signal.SIG_DFL)
 # screen shot https://stackoverflow.com/questions/19964345/how-to-do-a-screenshot-of-a-tkinter-application
 # https://stackoverflow.com/questions/31607458/how-to-add-clipboard-support-to-matplotlib-figures
 
+DEFAULT_SENSOR_SIZE = ("820", "640")
+SCALE_FACTOR = False
+MENU_BUTTON_WIDTH = 8
+
 
 class MainApp(tk.Tk):
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
         tk.Tk.wm_title(self, "Multiple Region Drawer")
+        self.geometry(f"{DEFAULT_SENSOR_SIZE[0]}x{DEFAULT_SENSOR_SIZE[1]}")
 
-        container = tk.Frame(self)
-        container.pack()
-        container.grid_rowconfigure(0, weight=1)
-        container.grid_columnconfigure(0, weight=1)
-        self.geometry('800x600')
+        font_settings = tk.font.Font(family='Arial', size=8, weight='bold')
+        region_help = tk.StringVar()
+        region_help.set('Format: Width, Height, OffsetX, OffsetY. Accept min, max')
+
+        # Button for refresh
+        reload_button = tk.Button(self, text="Reload", width=MENU_BUTTON_WIDTH, font=font_settings, command=self.draw_charts)
+        reload_button.grid(row=5, column=8, rowspan=1, columnspan=1, sticky=tk.E)
+
+        # Button for cleaning
+        clean_button = tk.Button(self, text="Clear", width=MENU_BUTTON_WIDTH, font=font_settings, command=self.clear)
+        clean_button.grid(row=3, column=8, rowspan=1, columnspan=1, sticky=tk.E)
 
         # Button for closing
-        exit_button = ttk.Button(self, text="Quit", command=lambda: exit(0))
-        exit_button.pack(side=tk.TOP)
+        exit_button = tk.Button(self, text="Quit", width=MENU_BUTTON_WIDTH, font=font_settings, command=lambda: exit(0))
+        exit_button.grid(row=2, column=8, rowspan=1, columnspan=1, sticky=tk.E)
+
+        # Button for copy
+        cpy_button = tk.Button(self, text="Copy", width=MENU_BUTTON_WIDTH, font=font_settings, command=self.copy_image)
+        cpy_button.grid(row=4, column=8, rowspan=1, columnspan=1, sticky=tk.E)
+
+        # Checkbox for resizing
+        self._scale = tk.BooleanVar()
+        check_factor = tk.Checkbutton(self, text='Resize Plots', variable=self._scale,
+                                      onvalue=True, offvalue=False, command=self.set_scale_factor)
+        check_factor.grid(row=2, column=4)
+        if SCALE_FACTOR:
+            check_factor.select()
 
         # Sensor settings
-        ttk.Label(self, text="Sensor Width").pack(side=tk.TOP)
-        self.sensor_width = ttk.Entry(self)
-        self.sensor_width.insert(tk.END, "500")
+        lab_width_max = tk.Label(self, text="Sensor Width")
+        lab_width_max.grid(row=2, column=0, sticky=tk.W)
+        self.sensor_width = tk.Entry(self)
+        self.sensor_width.insert(tk.END, DEFAULT_SENSOR_SIZE[0])
         self.sensor_width.bind("<Return>", self.update_sensor)
-        self.sensor_width.pack()
-        self.sensor_height = ttk.Entry(self)
-        self.sensor_height.insert(tk.END, "500")
+        self.sensor_width.grid(row=2, column=1, sticky=tk.W)
+        lab_height_max = tk.Label(self, text="Sensor Height")
+        lab_height_max.grid(row=3, column=0, sticky=tk.W)
+        self.sensor_height = tk.Entry(self)
+        self.sensor_height.insert(tk.END, DEFAULT_SENSOR_SIZE[1])
         self.sensor_height.bind("<Return>", self.update_sensor)
-        self.sensor_height.pack()
+        self.sensor_height.grid(row=3, column=1, sticky=tk.W)
+
         self.sensor_width_val = int(self.sensor_width.get())
         self.sensor_height_val = int(self.sensor_height.get())
 
+        # Info
+        lab_info = tk.Label(self, textvariable=region_help, font=("Arial", 8))
+        lab_info.grid(row=4, column=1, columnspan=2, sticky=tk.SW)
+
         # Region entries
-        self.r0 = ttk.Entry(self)
-        self.r0.insert(tk.END, f"{self.sensor_width_val},{self.sensor_height_val},{0},{0}")
+        r_gap_width = 35
+        lab_r0 = tk.Label(self, text="Region0 config")
+        lab_r0.grid(row=5, column=0, sticky=tk.W)
+        self.r0 = tk.Entry(self, width=r_gap_width)
+        self.r0.insert(tk.END, f"{self.sensor_width_val//8},{self.sensor_height_val//8},{0},{0}")
         self.r0.bind("<Return>", self.draw_charts)
-        self.r0.pack()
-        self.r1 = ttk.Entry(self)
+        self.r0.grid(row=5, column=1,  columnspan=2, sticky=tk.W)
+        tk.Button(self, text="x", height=1, width=1, font=font_settings,
+                  command=lambda: self.r0.delete(0, tk.END)).grid(row=5, column=3, sticky=tk.W)
+
+        lab_r1 = tk.Label(self, text="Region1 config")
+        lab_r1.grid(row=6, column=0, sticky=tk.W)
+        self.r1 = tk.Entry(self, width=r_gap_width)
+        self.r1.insert(tk.END, f"{self.sensor_width_val//8},{self.sensor_height_val//8},"
+                               f"{self.sensor_width_val//4},{self.sensor_height_val//4}")
         self.r1.bind("<Return>", self.draw_charts)
-        self.r1.pack()
-        self.r2 = ttk.Entry(self)
+        self.r1.grid(row=6, column=1,  columnspan=2, sticky=tk.W)
+        tk.Button(self, text="x", height=1, width=1, font=font_settings,
+                  command=lambda: self.r1.delete(0, tk.END)).grid(row=6, column=3, sticky=tk.W)
+
+        lab_r2 = tk.Label(self, text="Region2 config")
+        lab_r2.grid(row=7, column=0, sticky=tk.W)
+        self.r2 = tk.Entry(self, width=r_gap_width)
         self.r2.bind("<Return>", self.draw_charts)
-        self.r2.pack()
-        self.r3 = ttk.Entry(self)
+        self.r2.grid(row=7, column=1,  columnspan=2, sticky=tk.W)
+        tk.Button(self, text="x", height=1, width=1, font=font_settings,
+                  command=lambda: self.r2.delete(0, tk.END)).grid(row=7, column=3, sticky=tk.W)
+
+        lab_r3 = tk.Label(self, text="Region3 config")
+        lab_r3.grid(row=8, column=0, sticky=tk.W)
+        self.r3 = tk.Entry(self, width=r_gap_width)
         self.r3.bind("<Return>", self.draw_charts)
-        self.r3.pack()
+        self.r3.grid(row=8, column=1,  columnspan=2, sticky=tk.W)
+        tk.Button(self, text="x", height=1, width=1, font=font_settings,
+                  command=lambda: self.r3.delete(0, tk.END)).grid(row=8, column=3, sticky=tk.W)
 
         # Rysowanie wykresu
         self.m = MultiROI(self.sensor_width_val, self.sensor_height_val, lines=False, colored=True)
         self.canvas = None
-        container.pack()
         self.draw_charts()
-
         self.mainloop()
+
+    def set_scale_factor(self):
+        global SCALE_FACTOR
+        if self._scale.get():
+            SCALE_FACTOR = True
+        else:
+            SCALE_FACTOR = False
+
+    def copy_image(self):
+        self.canvas.postscript(file="file_name.ps", colormode='color')
+
+    def clear(self):
+        self.r0.delete(0, tk.END)
+        self.r1.delete(0, tk.END)
+        self.r2.delete(0, tk.END)
+        self.r3.delete(0, tk.END)
+        self.draw_charts()
 
     def draw_charts(self, *args):
         # Clean charts before update
@@ -85,12 +148,15 @@ class MainApp(tk.Tk):
         for rr in self.m.expected_regions:
             self.m.draw_expected(rr.SubRegionWidth, rr.SubRegionHeight, rr.SubRegionOffsetX, rr.SubRegionOffsetY, rr.label)
         self.m.draw_result()
-        # handle graph presentation
+
         if self.canvas:
-            self.canvas.get_tk_widget().pack_forget()
+            FigureCanvasTkAgg(None, self)
+            del self.canvas
+            #self.canvas.get_tk_widget().pack_forget()
+
         self.canvas = FigureCanvasTkAgg(self.m.fig, self)
         self.canvas.draw()
-        self.canvas.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
+        self.canvas.get_tk_widget().grid(row=9, column=0, columnspan=10, sticky=tk.W)
 
         #plt.savefig('plot.png', dpi=120, bbox_inches='tight')
 
@@ -144,9 +210,10 @@ class MultiROI:
 
         print(f"Sensor defined: Width {self.sensor_width}, Height {self.sensor_height}, "
               f"Width_min {self.width_minimum}, Height_min {self.height_minimum}")
-        scale_factor = self.sensor_width/self.sensor_height
+        scale_factor = self.sensor_width / self.sensor_height if SCALE_FACTOR else 1
         self.fig, (self.ax1, self.ax2) = plt.subplots(1, 2, figsize=(self.FRAME_WIDTH*scale_factor, self.FRAME_HEIGHT),
-                                                      sharex=True, sharey=True)
+                                                      sharex="all", sharey="all")
+        self.fig.tight_layout()
 
     def _draw_region(self, axis, region: Region) -> None:
         if region.label in self.region_colors:
