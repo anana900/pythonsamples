@@ -9,6 +9,7 @@ signal.signal(signal.SIGINT, signal.SIG_DFL)
 
 # screen shot https://stackoverflow.com/questions/19964345/how-to-do-a-screenshot-of-a-tkinter-application
 # https://stackoverflow.com/questions/31607458/how-to-add-clipboard-support-to-matplotlib-figures
+# https://clay-atlas.com/us/blog/2020/10/30/python-en-pillow-screenshot-copy-clipboard/
 
 DEFAULT_SENSOR_SIZE = ("820", "640")
 SCALE_FACTOR = False
@@ -150,6 +151,7 @@ class MainApp(tk.Tk):
         self.m.draw_result()
 
         if self.canvas:
+            # tutaj nie wieadomosco co to robi obecnie. Intencja było poprawne odswiezanie kontenera z wykresami
             FigureCanvasTkAgg(None, self)
             del self.canvas
             #self.canvas.get_tk_widget().pack_forget()
@@ -157,8 +159,7 @@ class MainApp(tk.Tk):
         self.canvas = FigureCanvasTkAgg(self.m.fig, self)
         self.canvas.draw()
         self.canvas.get_tk_widget().grid(row=9, column=0, columnspan=10, sticky=tk.W)
-
-        #plt.savefig('plot.png', dpi=120, bbox_inches='tight')
+        plt.savefig('plot.png', dpi=240, bbox_inches='tight')
 
     def update_sensor(self, *args):
         self.sensor_width_val = int(self.sensor_width.get())
