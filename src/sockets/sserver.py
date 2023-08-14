@@ -7,6 +7,7 @@ import socket as soc
 import threading as th
 import scommon as hs
 
+
 class Server():
     
     QUEUE_NO_CONN = 10
@@ -72,6 +73,7 @@ class Server():
             print("Watki, połączenie z klientem: {0} {1[0]}:{1[1]}".format(t.ident, client_address))
             
         self.server.close()
+
 
 if __name__ == '__main__':
     server = Server()

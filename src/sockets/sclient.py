@@ -8,7 +8,8 @@ import scommon as hs
 import sys
 import select
 
-class Client():
+
+class Client:
     def __init__(self, server_port=65432, server_host=soc.gethostbyname(soc.gethostname())):
         self.address = (server_host, server_port)
         
@@ -33,6 +34,7 @@ class Client():
                     if data == "koniec":
                         self.client.close()
                         break
+
 
 if __name__ == '__main__':
     client = Client(int(sys.argv[1]))

@@ -7,6 +7,12 @@ import tkinter as tk
 import signal
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 
+"""
+README
+Ubuntu Requirements
+apt install python3-tk
+"""
+
 # screen shot https://stackoverflow.com/questions/19964345/how-to-do-a-screenshot-of-a-tkinter-application
 # https://stackoverflow.com/questions/31607458/how-to-add-clipboard-support-to-matplotlib-figures
 # https://clay-atlas.com/us/blog/2020/10/30/python-en-pillow-screenshot-copy-clipboard/
