@@ -4,12 +4,16 @@ Created on Jul 30, 2020
 @author: anana
 '''
 import multiprocessing as mp
+import random
 #from click._compat import raw_input
 import time
 
 def oczko(name):
-    print("Jestem procesem innym name:{} pid:{} process name:{}"\
-          .format(name, mp.current_process().pid, mp.current_process().name))
+    czekam = random.randint(10, 20)
+    print("Jestem procesem innym name:{} pid:{} process name:{}, czekam: {}"\
+          .format(name, mp.current_process().pid, mp.current_process().name, czekam))
+    time.sleep(czekam)
+    print("DONE {}".format(name))
 
 def proces():
     print("Jestem procesem main {}".format(mp.current_process().pid))
@@ -20,9 +24,8 @@ def proces():
     p2.start()
 
 def pula():
-    l = ["ola", "asia", "klaudia", "viena"]
+    l = range(50)
     ilosc_procesow = len(l)
-
     p = mp.Pool(ilosc_procesow)
     p.map(oczko, l)
 
@@ -244,7 +247,7 @@ def proces_podnies_do_kwadratu():
 
 if __name__ == '__main__':
     #proces()
-    #pula()
+    pula()
     #proces_anonimowy()
     #proces_anonimowy_z_nawa()
     #proces_lock()
@@ -253,4 +256,4 @@ if __name__ == '__main__':
     #praca_na_liscie()
     #proc_praca_na_liscie()
     #proc_praca_na_liscie_q()
-    proces_podnies_do_kwadratu()
+    #proces_podnies_do_kwadratu()

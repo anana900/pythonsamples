@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}Flasky START{% endblock %}
+{% block page_content %}
+
+<div class="page-header">
+    <h1>Due to this never being implemented</h1>
+    <p>Aktualny czas {{ moment(current_time).format("LLL") }}</p>
+    <p>To było {{ moment(current_time).fromNow(refresh=True) }}</p>
+    <p>{{ moment(current_time).calendar() }}</p>
+
+    <h2>Witaj, {% if name %}{{ name }}{% else %}nieznajomy{% endif %}!</h2>
+    <p>Priorytet {{ priorytet }}</p>
+    <p>
+        {% if email %}
+            Konfiguracja została wysłana na email: {{ email }}
+        {% else %}
+            Musisz podać email żeby przesłać konfigurację.
+        {% endif %}
+    </p>
+</div>
+
+ {{ wtf.quick_form(moja_forma) }}
+
+{% endblock %}

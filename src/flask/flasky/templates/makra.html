@@ -1,0 +1,13 @@
+<!-- Tworzenie elementu listy -->
+{% macro lista_element(element) %}
+    <li>{{ element }}</li>
+{% endmacro %}
+
+<!-- Tworzenie prostej listy -->
+{% macro lista_prosta(elementy) %}
+<ul>
+    {% for element in elementy %}
+        {{ lista_element(element) }}
+    {% endfor %}
+</ul>
+{% endmacro %}

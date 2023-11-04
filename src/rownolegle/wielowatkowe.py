@@ -144,7 +144,6 @@ def szukaj_stolic4(blokada_stdo, blokada_kolejki, kolejka):
     while status_pracy:
         with blokada_kolejki:                           # blokujemy kolejkę na czas dostępu do niej
             if kolejka.empty():                         
-                status_pracy = False
                 break
             else:
                 panstwo = kolejka.get()

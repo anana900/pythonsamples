@@ -1,0 +1,54 @@
+{% extends "bootstrap/base.html" %}
+{% import "makra.html" as makra %}
+
+
+{% block scripts %}
+{{ super() }}
+<!-- Importowanie biblioteki Moment.js -->
+{{ moment.include_moment() }}
+<!-- Set LANGUAGE -->
+{{ moment.locale('pl') }}
+{% endblock %}
+
+
+{% block head %}
+{{ super() }}
+<link rel="shortcut icon" href="{{ url_for('static', filename='mbot.png') }}" type="image/png">
+<link rel="icon" href="{{ url_for('static', filename='bot.png') }}" type="image/png">
+{% endblock %}
+
+{% block title %}Flasky{% endblock %}
+{% block navbar %}
+<div class="navbar navbar-inverse" role="navigation">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle"
+            data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Przełącz pasek nawigacji</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Flasky</a>
+        </div>
+        <div class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+                <li><a href="/">Strona główna</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block content %}
+<div class="container">
+
+    <!-- Obsługa komunikatów POPUP typu flash -->
+    {% for message in get_flashed_messages() %}
+    <div class="alert alert-warning">
+        <button type="button" class="close" data-dismiss="alert">&times;</button>{{ message }}
+    </div>
+    {% endfor %}
+
+    {% block page_content %}{% endblock %}
+</div>
+{% endblock %}
