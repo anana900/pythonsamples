@@ -162,7 +162,7 @@ Formularze Flask WTF
 secret key      - tajny klucz, ciąg dowolnych znaków służący za klucz podpisujący lub szyfrujący. Jest to wymagane
                 do kożystania z Flask WTF. Sposoby definiowania takiego klucza:
                 app = Flask(__name__)
-                app.config['SECRET_KEY'] = 'trudny do odgadnięcia ciąg znaków'
+                app.config["SECRET_KEY"] = "trudny do odgadnięcia ciąg znaków"
                 gdzie app.config to słownik przetrzymujący różnego typu zmienne konfiguracyjne Flaska. Klucz powinien
                 przechowywany w zmiennej środowiskowej, nie w kodzie.
 FlaskForm       - klasa rodzic do każdej innej klasy na serwerze reprezentujacej formularz.
@@ -212,18 +212,50 @@ flask-sqlalchemy - biblioteka integrująca Flask z SQLAlchemy. SQLAlchemy to ORM
                 - adres URL bazy musi być zapisany jako klucz SQLALCHEMY_DATABASE_URI w obiekcie konfiguracyjnym Flask
                 - definiowanie modelu polega na użycie klasy bazowej Model i poprzez jego dziedziczenie tworzeniu
                 klas reprezentujących poszczególne tabele w naszej bazie.
+flask-migrate   - modyfikacja baz danych bez utraty danych.
+                Kroki przygotowawcze:
+                1 instalacja flask-migrate oraz stworzenie obiektu Migrate w głównym pliku aplikacji
+                2 wywołanie instrukcji cmd: flask db init. W ten sposób tworzony jest katalog migracji "migrations"
+                wraz ze wszystkimi niezbędnymi plikami.
+                3 tworzenie skryptu migracji, który będzie definiował metody upgrade() i downgrade() pozwalające na
+                automatyczne aktualizowanie lub przywracanie baz danych.
+                Kroki postępowania z migracją:
+                0 (opcjonalnie) oznaczenie istniejącej bazy danych jako zaktualizowanej: flask db stamp
+                1 wprowadzamy zmiany w klasach modeli naszej bazy danych
+                2 tworzymy skrypt automatycznej migracji za pomocą polecenia: flask db migrate -m "komentarz"
+                Ten skrypt wymaga sprawdzenia, ponieważ nie zawsze będzie poprawny (np zmiana nazwy może być
+                interpretowana jako usunięcie starej i dodanie nowej kolumny, co skutkuje usunięciem również
+                starych danych).
+                3 dodać sktypt migracji do kontroli źródeł
+                4 wykonać polecenie migracji: flask db upgrade
+-------------------------------------
+Obsługa Email
+-------------------------------------
+flask-mail      - wraper biblioteki smtplib służącej do obsługi poczty elektronicznej.
+                Konfiguracja dla Gmail z 2 etapową weryfikacją:
+                1 w Gmaila generuj hasło dla aplikacji
+                2 Config Flaska
+                app.config["MAIL_SERVER"] = "smtp.gmail.com"
+                app.config["MAIL_PORT"] = 465
+                app.config["MAIL_USE_TLS"] = False
+                app.config["MAIL_USE_SSL"] = True
+                app.config["MAIL_USERNAME"] = os.environ.get("MAIL_USERNAME")   # pełen email
+                app.config["MAIL_PASSWORD"] = os.environ.get("MAIL_PASSWORD")   # wygenerowane hasło
 
 """
 
 import datetime
 import os
+from threading import Thread
 
 from flask import Flask, render_template, session, redirect, url_for, flash
 from flask_bootstrap import Bootstrap
 from flask_moment import Moment
 from flask_wtf import FlaskForm
 from flask_sqlalchemy import SQLAlchemy
-from wtforms import StringField, SubmitField, IntegerField, EmailField, FieldList, widgets
+from flask_migrate import Migrate
+from flask_mail import Mail, Message
+from wtforms import StringField, SubmitField, IntegerField, EmailField, BooleanField, widgets
 from wtforms.validators import DataRequired
 
 
@@ -237,6 +269,33 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(basedir, "mojabaza.sqlite")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
+
+# Migracja bazy danych
+migrate = Migrate(app, db)
+
+# Email
+# Konfiguracja dla gmail
+app.config["MAIL_SERVER"] = "smtp.gmail.com"
+app.config["MAIL_PORT"] = 465
+app.config["MAIL_USE_TLS"] = False
+app.config["MAIL_USE_SSL"] = True
+app.config["MAIL_USERNAME"] = "botrobitorobak@gmail.com" #os.environ.get("MAIL_USERNAME")
+app.config["MAIL_PASSWORD"] = "lagz mqmb kvmk iwji" #os.environ.get("MAIL_PASSWORD")
+
+mail = Mail(app)
+
+
+def send_async_email(app, msg):
+    with app.app_context():
+        mail.send(msg)
+
+
+def send_email_message(subject, recipients, template, **kwargs):
+    msg = Message(subject, sender="botrobitorobak@gmail.com", recipients=recipients)
+    msg.body = render_template(template + ".txt", **kwargs)
+    email_th = Thread(target=send_async_email, args=[app, msg])
+    email_th.start()
+    return email_th
 
 
 class Role(db.Model):
@@ -255,6 +314,7 @@ class User(db.Model):
     username = db.Column(db.String(64), unique=True, index=True)
     priorytet = db.Column(db.Integer())
     email = db.Column(db.String(64))
+    city = db.Column(db.String(64))
     role_id = db.Column(db.Integer, db.ForeignKey("roles.id"))
 
     def __repr__(self):
@@ -267,6 +327,7 @@ class MojaForma(FlaskForm):
     priorytet_maximum = 10
     priorytet = IntegerField(f"Priorytet ({priorytet_minimum} do {priorytet_maximum})", default=0,
                              widget=widgets.NumberInput(min=priorytet_minimum, max=priorytet_maximum))
+    wyslij_email = BooleanField(default=False)
     email = EmailField("Email")
     submit = SubmitField("Wyslij")
 
@@ -289,6 +350,11 @@ def index():
             session["name"] = moja_forma.name.data
             session["priorytet"] = moja_forma.priorytet.data
             session["email"] = moja_forma.email.data
+            if moja_forma.wyslij_email.data:
+                send_email_message("Witamy na stronie Flasky", ["anana900@wp.pl"],
+                                   "mail/email",  user=moja_forma.name.data,
+                                   timestamp=datetime.datetime.now())
+                flash(f"SUCCESS Wyslano email")
         # tutaj robimy przekierowanie zapobiegające ponownemy wysłaniu formularza w przypadku odświeżenia
         return redirect(url_for("index"))
     return render_template("index.html", current_time=datetime.datetime.utcnow(),
@@ -304,12 +370,12 @@ def user(zmienna):
 
 @app.errorhandler(404)
 def page_not_found(e):
-    return render_template('404.html'), 404
+    return render_template("404.html"), 404
 
 
 @app.errorhandler(500)
 def internal_server_error(e):
-    return render_template('500.html'), 500
+    return render_template("500.html"), 500
 
 
 # Dodawanie kontekstu powłoki

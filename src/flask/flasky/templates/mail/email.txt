@@ -1,0 +1,6 @@
+Cześć {{ user }}!
+
+Twoje zgłoszenie z dnia {{ timestamp }} czeka na weryfikację administratora.
+
+Pozdrawiamy,
+BotrobiTorobak
