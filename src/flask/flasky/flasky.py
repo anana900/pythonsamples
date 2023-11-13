@@ -2,11 +2,11 @@
 Wchodzimy do katalogu bazowego projektu.
 
 Uruchomienie Linux:
-export FLASK_APP=hello.py
+export FLASK_APP=flasky.py
 flask run
 Uruchomienie Windows:
-set FLASK_APP=hello.py
-$env:FLASK_APP = "hello.py"
+set FLASK_APP=flasky.py
+$env:FLASK_APP = "flasky.py"
 flask run
 
 Tryb debugowania Linux
@@ -222,7 +222,7 @@ flask-migrate   - modyfikacja baz danych bez utraty danych.
                 3 tworzenie skryptu migracji, który będzie definiował metody upgrade() i downgrade() pozwalające na
                 automatyczne aktualizowanie lub przywracanie baz danych.
                 Kroki postępowania z migracją:
-                0 (opcjonalnie) oznaczenie istniejącej bazy danych jako zaktualizowanej: flask db stamp
+                0 oznaczenie istniejącej bazy danych jako zaktualizowanej: flask db stamp
                 1 wprowadzamy zmiany w klasach modeli naszej bazy danych
                 2 tworzymy skrypt automatycznej migracji za pomocą polecenia: flask db migrate -m "komentarz"
                 Ten skrypt wymaga sprawdzenia, ponieważ nie zawsze będzie poprawny (np zmiana nazwy może być
@@ -250,13 +250,13 @@ Orgaizacja plików Flask
 """
 
 import os
-from app import create_app, db
-from app.models import User, Role
+from src.flask.flasky.app import create_app, db
+from src.flask.flasky.app.models import User, Role
 from flask_migrate import Migrate
 
 app = create_app(os.getenv('FLASK_CONFIG') or 'default')
 migrate = Migrate(app, db)
-
+print(app.config)
 
 @app.shell_context_processor
 def make_shell_context():

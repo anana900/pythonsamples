@@ -16,10 +16,10 @@ class BasicTestCase(unittest.TestCase):
         db.drop_all()
         self.app_context.pop()
 
-    def test_1(self):
+    def test_flask_app_exist(self):
         self.assertFalse(current_app is None)
 
-    def test_2(self):
+    def test_flask_app_test_context(self):
         self.assertTrue(current_app.config["TESTING"])
 
 

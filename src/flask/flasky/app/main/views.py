@@ -16,9 +16,9 @@ def index():
             flash(f"Uzytkownik {name_from_db.username} już istnieje.")
         else:
             # Dodanie do bazy danych
-            user = User(username=moja_forma.name.data,
-                        priorytet=moja_forma.priorytet.data,
-                        email=moja_forma.email.data)
+            user = User(email=moja_forma.email.data,
+                        username=moja_forma.name.data.lower(),
+                        priorytet=moja_forma.priorytet.data)
             db.session.add(user)
             db.session.commit()
             # Dodanie do cookies

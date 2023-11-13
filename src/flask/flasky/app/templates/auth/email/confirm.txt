@@ -1,0 +1,4 @@
+Drogi {{ user.username }},
+Aby potwierdzić swoje konto, kliknij ten link:
+{{ url_for('auth.confirm', token=token, _external=True) }}
+Uwaga: Nie odpowiadaj na tę wiadomość.
