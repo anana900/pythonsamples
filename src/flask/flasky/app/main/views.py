@@ -37,7 +37,7 @@ def index():
                            email=session.get("email"))
 
 
-@main.route("/user/<zmienna>")
-def user(zmienna):
-    lista = [f"{u.username} {u.email} Priorytet {u.priorytet}" for u in User.query.all()]
-    return render_template("user.html", name=zmienna, lista=lista, element=2)
+@main.route("/user/<username>")
+def user(username):
+    usr = User.query.filter_by(username=username).first_or_404()
+    return render_template('user.html', user=usr)
